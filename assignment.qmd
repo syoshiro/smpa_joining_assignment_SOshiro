@@ -43,7 +43,7 @@ Now Combine (stack) the two dataframes into one combined dataframe, so all the r
 
 ```{r}
 
-
+combined_primary <- full_join(primary_dem, primary_rep)
 
 
 
@@ -61,7 +61,8 @@ To use clean_names() you apply it to your dataframe like:
 ```{r}
 
 
-
+combined_primary <- combined_primary %>% 
+  clean_names()
 
 
 ```
@@ -80,9 +81,8 @@ Next use left_join() to join the two tables based on the unique combination of p
 
 ```{r}
 
-
-
-
+combined_primary_precinct <- combined_primary %>%
+  left_join(precinct_voting_locations, by = c("election_district_precinct" = "precinct_code", "county" = "county_code"))
 
 
 ```
@@ -95,21 +95,30 @@ Write code to produce a `votes` column which is the result of adding together `e
 
 ```{r}
 
-
+combined_primary_precinct <- combined_primary_precinct %>% 
+  mutate(total_votes = (early_votes + election_night_votes + provisional_votes + mail_in_ballot_1_votes + mail_in_ballot_2_votes) 
+  )
 
 ```
 
 Next, separately write code to show each county and precinct and calculate the total votes in the Governor's race - bearing in mind that each precinct will have multiple rows in the dataframe, but you only want to see one row for each precinct. (So you'll want to use grouping and summarizing.)
 
 ```{r}
-
-
-
+combined_primary_precinct %>%
+  filter(office_name == "Governor / Lt. Governor") %>%
+  group_by(election_district_precinct, county_name, location_name) %>%
+  summarise(
+    n = n(),
+    total_votes = sum(total_votes)
+  ) %>%
+  arrange(desc(total_votes)) %>%
+  View()
 
 
 ```
 
 What is the name and voting location of the precinct that saw the most votes in the governor's race? *Put answer here*
+ANSWER: Prince George's County, 15005, "DR. HENRY A. WISE, JR. HIGH SCHOOL"
 
 ### Q2.
 
@@ -117,16 +126,23 @@ Let's look at the average number of votes in each party's primary race for gover
 
 ```{r}
 
-
-
-
+combined_primary_precinct %>%
+  filter(office_name == "Governor / Lt. Governor") %>%
+  group_by(election_district_precinct, county_name, location_name) %>%
+  summarise(
+    n = n(),
+    total_votes = sum(total_votes)
+  ) %>%
+  arrange(total_votes)
 
 
 ```
 
 How many precincts are there, and which county has the most? *Put answer here*
+ANSWER: 12 precincts, 4 of which are in Prince George's County (the most)
 
 What else would you need to know about these precincts to know whether this might be worth a story? *Put answer here*
+ANSWER: I would need to know how big these precincts are and their total voter turnout in general. I would also want to know their historical voting pattern. 
 
 ### Q3.
 
@@ -134,8 +150,21 @@ Choose your own adventure: I want you to come up with a question you could ask o
 
 First write the question and then try to answer it by writing code. If you're not sure of the exact code at a minimum, describe what you think you'd have to do to answer it and what the results would look like.
 
+### MY QUESTION: 
+Which County in MD had the most early votes proportional to total votes?
+
+ANSWER: Talbot County had the highest proportion of early votes compared to the final total vote count; 28% of total votes cast were cast early. 
+
 ```{r}
 
+combined_primary_precinct %>%
+  group_by(county_name) %>%
+  summarise(
+    total_early_votes = sum(early_votes),
+    total_votes = sum(total_votes),
+    early_vote_proportion = total_early_votes / total_votes
+  ) %>%
+  arrange(desc(early_vote_proportion))
 
 
 
