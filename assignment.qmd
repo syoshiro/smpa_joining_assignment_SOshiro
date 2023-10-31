@@ -1,6 +1,6 @@
 ---
 title: "Joining Assignment"
-author: "Put Name Here"
+author: "Sarina Oshiro"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 format:
   html:
